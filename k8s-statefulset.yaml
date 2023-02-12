@@ -1,0 +1,102 @@
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: idgen-microsrv-go
+  namespace: default
+  labels:
+    app: idgen-microsrv-go
+  annotations: {}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: idgen-microsrv-go
+  template:
+    metadata:
+      labels:
+        app: idgen-microsrv-go
+    spec:
+      containers:
+        - name: idgen-microsrv-go
+          image: >-
+            registry.cn-beijing.aliyuncs.com/lhtzbj12/snowflake-go
+          env:
+            - name: DISCOVERY_ENABLED
+              value: 'false'
+            # if WOKER_ID_PROVIDER value is 'hostname', hostName must match /.+-\d+/, e.x. xxxx-1 xxxx-2
+            - name: WOKER_ID_PROVIDER
+              value: 'hostname'
+            # if WOKER_ID_PROVIDER value is 'zookeeper', ZOOKEEPER_CONN_STRING is needed.
+            # - name: ZOOKEEPER_CONN_STRING
+            #   value: 'zookeeper:2181'
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /health
+              port: 8074
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: mst-platform-eduadm-api
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /health
+              port: 8074
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 800m
+              memory: 50Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          lifecycle: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: idgen-microsrv-go
+              topologyKey: kubernetes.io/hostname
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: idgen-microsrv-go
+  namespace: default
+  labels:
+    app: idgen-microsrv-go
+spec:
+  ports:
+    - name: default
+      protocol: TCP
+      port: 8074
+      targetPort: 8074
+      nodePort: 30080
+  selector:
+    app: idgen-microsrv-go
+  type: NodePort

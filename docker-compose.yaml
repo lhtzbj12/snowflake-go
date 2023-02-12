@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  snowflake-go:
+    image: registry.cn-beijing.aliyuncs.com/lhtzbj12/snowflake-go
+    restart: always
+    environment: 
+      # 是否启用服务发现
+      DISCOVERY_ENABLED: "false"
+      # 注册中心 host
+      DISCOVERY_SRV_ADDR: localhost:8848
+      # 注册中心 命名空间
+      DISCOVERY_NAMESPACE: public
+      # Gin服务端口
+      SERVER_PORT: 8074
+      # 设置wokerId的分配方式，值可以为 hostName envirnment zookeeper
+      WOKER_ID_PROVIDER: "envirnment"
+      # 如果WOKER_ID_PROVIDER为"envirnment"，设置环境变量的值，wokerId为1
+      SNOWFLAKE_WORKER_ID: "1"
+      # 如果WOKER_ID_PROVIDER为"zookeeper"，则需要提供zookeeper的连接字符串
+      # ZOOKEEPER_CONN_STRING: localhost:2181
+    ports:
+      - 8074:8074
