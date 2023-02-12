@@ -1,0 +1,2 @@
+# snowflake-go
+Snowflake-Go使用Golang实现了雪花算法（参考了美团Leaf项目，该项目采用JAVA实现），其解决了时钟回拨问题，基于Gin封装成Rest微服务，使用Nacos作为服务发现。雪花算法需要提供datacenterId和workerId，本项目直接简化成workerId，workerId为范围为0~1023，多副本部署时，需要保证各副本的workerId唯一，否则可能导致id重复（虽然概率很低），支持Zookeeper、环境变量、HostName等多种分配workerId的方式。
